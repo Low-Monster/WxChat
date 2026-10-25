@@ -41,12 +41,44 @@
 
 ##  快速开始
 
-### 一键部署
+### 方式一：直接拉取预构建镜像（推荐）
+
+本仓库通过 GitHub Actions 自动构建多架构镜像（amd64/arm64），发布在 GHCR：
+
+```bash
+# 拉取最新镜像（main 分支每次 push 自动更新，tag 发布同步打版本号）
+docker pull ghcr.io/low-monster/wxchat:latest
+
+# 或者拉取指定版本（发布 v* tag 时自动生成）
+docker pull ghcr.io/low-monster/wxchat:1.0.50
+```
+
+参考 `docker-compose.yml` 使用镜像：
+
+```yaml
+services:
+  wxchat:
+    image: ghcr.io/low-monster/wxchat:latest
+    container_name: wxchat
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+      - ./uploads:/app/uploads
+    env_file:
+      - .env.docker
+```
+
+> 首次拉取 GHCR 镜像前，请到 GitHub → Packages（https://github.com/users/Low-Monster/packages）确认可见性设置；
+> 私有镜像需要在服务器上 `docker login ghcr.io` 后才能拉取。
+
+### 方式二：从源码构建部署
 
 ```bash
 # 克隆项目
-git clone https://github.com/DEKVIW/docker-wxchat.git
-cd docker-wxchat
+git clone https://github.com/Low-Monster/WxChat.git
+cd WxChat
 
 # 进入 Docker 目录
 cd docker
