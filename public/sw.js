@@ -1,9 +1,9 @@
 // 微信文件传输助手 Service Worker
 // 提供离线缓存和后台同步功能
 
-const CACHE_NAME = "wxchat-v1.0.49";
-const STATIC_CACHE_NAME = "wxchat-static-v1.0.49";
-const DYNAMIC_CACHE_NAME = "wxchat-dynamic-v1.0.49";
+const CACHE_NAME = "wxchat-v1.0.50";
+const STATIC_CACHE_NAME = "wxchat-static-v1.0.50";
+const DYNAMIC_CACHE_NAME = "wxchat-dynamic-v1.0.50";
 
 // 需要缓存的静态资源
 const STATIC_ASSETS = [
@@ -128,6 +128,14 @@ self.addEventListener("fetch", (event) => {
 
   // 跳过 Chrome 扩展请求
   if (url.protocol === "chrome-extension:") {
+    return;
+  }
+
+  // 非 GET 请求直接放行，不经 Service Worker 中转。
+  // Safari/iOS 26.5+ 的 WebKit 回归（bug 319985/320904）：
+  // 被 Service Worker 重新 fetch 的 multipart 请求会丢失 File body（Content-Length: 0），
+  // 导致 iPhone 端上传文件必然失败。放行后由浏览器原生发送，不受影响。
+  if (request.method !== "GET") {
     return;
   }
 

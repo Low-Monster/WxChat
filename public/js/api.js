@@ -195,7 +195,18 @@ const API = {
       }
 
       const formData = new FormData();
-      formData.append("file", file);
+      // WebKit bug 319985 workaround (Safari/iOS 26.5+):
+      // FormData 里直接放入从文件选择器拿到的 disk-backed File 时，
+      // WebKit 网络进程会尝试从磁盘读取该文件，但被沙盒拒绝，
+      // 请求以 Content-Length: 0 发出（文件根本没离开手机），服务端必返回 400。
+      // slice() 返回一个无磁盘路径的 Blob，迫使序列化改走页内读取路径。
+      // 已于 WebKit 323318@main (2026-10-10) 修复并 backport 至 safari-7626-branch，
+      // 但要等下一个 Safari 正式版发布；此 workaround 对所有浏览器无害。
+      const fileForUpload =
+        typeof file.slice === "function"
+          ? file.slice(0, file.size, file.type)
+          : file;
+      formData.append("file", fileForUpload, file.name);
       formData.append("deviceId", deviceId);
       formData.append("conversationId", ConversationManager.currentConversationId());
 
